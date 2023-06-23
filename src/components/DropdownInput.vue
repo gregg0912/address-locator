@@ -1,22 +1,28 @@
 <template>
   <div class="column">
-    <div class="field">
-      <div class="control">
-        <label for="" class="label">Select a {{ label }}</label>
-        <div class="select is-fullwidth">
-          <select
-            :disabled="inputDetail.isDisabled"
-            v-on:change="handleOptionSelect"
-            v-model="selectedOption"
-          >
-            <option
-              v-for="option in inputDetail.optionList"
-              :key="option.id"
-              :value="option.name"
-            >
-              {{ option.name }}
-            </option>
-          </select>
+    <div class="field is-horizontal">
+      <div class="field-label is-normal">
+        <label for="" class="label">{{ label }}</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <div class="control">
+            <div class="select is-fullwidth">
+              <select
+                :disabled="inputDetail.isDisabled"
+                v-on:change="handleOptionSelect"
+                v-model="selectedOption"
+              >
+                <option
+                  v-for="option in inputDetail.optionList"
+                  :key="option.id"
+                  :value="option.name"
+                >
+                  {{ option.name }}
+                </option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
     </div>
