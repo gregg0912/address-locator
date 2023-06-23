@@ -105,9 +105,9 @@ export default {
   },
   computed: {
     isVisible: function () {
-      return this.selectedBarangay &&
-        this.selectedMunicipality &&
-        this.selectedProvince
+      return this.selectedMunicipality &&
+        this.selectedProvince &&
+        this.searchText
         ? true
         : false;
     },
@@ -181,13 +181,16 @@ export default {
       if (
         this.searchText &&
         this.selectedProvince &&
-        this.selectedMunicipality &&
-        this.selectedBarangay
+        this.selectedMunicipality
       ) {
+        let barangayOption = "";
+        if (!this.selectedBarangay) {
+          barangayOption = this.selectedBarangay;
+        }
         autocompleteURL.search = new URLSearchParams({
           province: this.selectedProvince,
           municipality: this.selectedMunicipality,
-          barangay: this.selectedBarangay,
+          barangay: barangayOption,
           searchText: this.searchText,
         });
       }
