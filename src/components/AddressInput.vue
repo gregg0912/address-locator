@@ -1,7 +1,7 @@
 <template>
   <div class="field">
     <div class="control">
-      <label class="label" for="address">Search for a specific address:</label>
+      <label class="label" for="address">Search address:</label>
       <input
         type="text"
         list="address_list"

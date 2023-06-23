@@ -1,12 +1,14 @@
 <template>
   <div class="container">
     <loading :active="isLoading" :is-full-page="fullPage" />
-    <DropdownInput
-      v-for="(inputDetail, index) in inputDetails"
-      :key="index"
-      :input-detail="inputDetail"
-      @optionChange="handleOptionChange"
-    />
+    <div class="columns">
+      <DropdownInput
+        v-for="(inputDetail, index) in inputDetails"
+        :key="index"
+        :input-detail="inputDetail"
+        @optionChange="handleOptionChange"
+      />
+    </div>
     <AddressInput
       v-show="isAddressVisible"
       :datalist-options="datalistOptions"
@@ -68,7 +70,7 @@ export default {
       datalistOptions: [],
     };
   },
-  created() {
+  mounted() {
     this.$watch(
       () => this.$route.params,
       () => {

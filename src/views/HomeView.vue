@@ -1,6 +1,8 @@
 <template>
   <div class="home">
-    <AddressForm />
+    <KeepAlive>
+      <AddressForm />
+    </KeepAlive>
   </div>
 </template>
 

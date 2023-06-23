@@ -1,8 +1,18 @@
 <template>
-  <div id="app">
+  <div id="app" class="container">
+    <RouterTabs />
     <router-view />
   </div>
 </template>
+<script>
+import RouterTabs from "./components/RouterTabs.vue";
+export default {
+  name: "App",
+  components: {
+    RouterTabs,
+  },
+};
+</script>
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
