@@ -29,12 +29,5 @@ export default {
   props: {
     datalistOptions: Array,
   },
-  computed: {
-    addressOptions: function () {
-      return this.datalistOptions.map((option) => {
-        return `Hello ${option}`;
-      });
-    },
-  },
 };
 </script>

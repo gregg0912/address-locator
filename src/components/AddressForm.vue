@@ -1,5 +1,10 @@
 <template>
   <div class="container">
+    <NotificationMessage
+      :message="message"
+      v-show="hasError"
+      @closeNotif="hasError = false"
+    />
     <loading :active="isLoading" :is-full-page="fullPage" />
     <div class="columns">
       <DropdownInput
@@ -28,11 +33,13 @@
   </div>
 </template>
 <script>
+import "vue-loading-overlay/dist/vue-loading.css";
+import axios from "axios";
+
 import AddressInput from "./AddressInput.vue";
 import DropdownInput from "./DropdownInput.vue";
 import Loading from "vue-loading-overlay";
-import "vue-loading-overlay/dist/vue-loading.css";
-import axios from "axios";
+import NotificationMessage from "./NotificationMessage.vue";
 
 export default {
   name: "AddressForm",
@@ -40,6 +47,7 @@ export default {
     AddressInput,
     DropdownInput,
     Loading,
+    NotificationMessage,
   },
   data: function () {
     return {
@@ -47,7 +55,7 @@ export default {
         {
           name: "province",
           isDisabled: false,
-          optionList: [],
+          optionList: this.getLocationOptions(),
         },
         {
           name: "municipality",
@@ -68,18 +76,9 @@ export default {
       fullPage: true,
       isAddressVisible: false,
       datalistOptions: [],
+      message: "",
+      hasError: false,
     };
-  },
-  mounted() {
-    this.$watch(
-      () => this.$route.params,
-      () => {
-        this.getLocationOptions();
-      },
-      // fetch the data when the view is created and the data is
-      // already being observed
-      { immediate: true }
-    );
   },
   watch: {
     selectedProvince: function (value) {
@@ -128,6 +127,8 @@ export default {
       inputDetailIndex = 0
     ) {
       this.isLoading = true;
+      this.message = "";
+      this.hasError = false;
       try {
         const placeDetailsURL = new URL(
           "http://localhost:5000/api/getLocations"
@@ -152,6 +153,8 @@ export default {
           } else {
             this.inputDetails[inputDetailIndex].optionList = [];
             this.inputDetails[inputDetailIndex].isDisabled = true;
+            this.message = getLocations.data.data.response.message;
+            this.hasError = true;
           }
         }
         this.isLoading = false;
@@ -161,7 +164,9 @@ export default {
           this.inputDetails[inputDetailIndex].optionList = [];
         }
         console.log(error);
+        this.message = error.message;
         this.isLoading = false;
+        this.hasError = true;
       }
     },
     handleOptionChange: function (inputDetailIndex, selectedOption) {
