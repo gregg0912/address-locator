@@ -8,10 +8,16 @@
     <loading :active="isLoading" :is-full-page="fullPage" />
     <div class="columns">
       <DropdownInput
-        v-for="(inputDetail, index) in inputDetails"
-        :key="index"
-        :input-detail="inputDetail"
-        @optionChange="handleOptionChange"
+        :input-detail="provinceConfig"
+        v-model="selectedProvince"
+      />
+      <DropdownInput
+        :input-detail="municipalityConfig"
+        v-model="selectedMunicipality"
+      />
+      <DropdownInput
+        :input-detail="barangayConfig"
+        v-model="selectedBarangay"
       />
     </div>
     <AddressInput
@@ -51,23 +57,21 @@ export default {
   },
   data: function () {
     return {
-      inputDetails: [
-        {
-          name: "province",
-          isDisabled: false,
-          optionList: this.getLocationOptions(),
-        },
-        {
-          name: "municipality",
-          isDisabled: true,
-          optionList: [],
-        },
-        {
-          name: "barangay",
-          isDisabled: true,
-          optionList: [],
-        },
-      ],
+      provinceConfig: {
+        name: "province",
+        isDisabled: false,
+        optionList: [],
+      },
+      municipalityConfig: {
+        name: "municipality",
+        isDisabled: true,
+        optionList: [],
+      },
+      barangayConfig: {
+        name: "barangay",
+        isDisabled: true,
+        optionList: [],
+      },
       selectedProvince: null,
       selectedMunicipality: null,
       selectedBarangay: null,
@@ -82,24 +86,28 @@ export default {
   },
   watch: {
     selectedProvince: function (value) {
-      this.inputDetails[1].isDisabled = true;
-      this.inputDetails[1].optionList = [];
-      this.inputDetails[2].isDisabled = true;
-      this.inputDetails[2].optionList = [];
+      this.municipalityConfig.isDisabled = true;
+      this.municipalityConfig.optionList = [];
+      this.barangayConfig.isDisabled = true;
+      this.barangayConfig.optionList = [];
       this.selectedMunicipality = null;
       this.selectedBarangay = null;
-      this.getLocationOptions(value, "", 1);
-      this.inputDetails[1].isDisabled = false;
+      this.getLocationOptions(value, "", this.municipalityConfig);
+      this.municipalityConfig.isDisabled = false;
       this.isAddressVisible = false;
     },
     selectedMunicipality: function (value) {
-      this.inputDetails[2].isDisabled = true;
-      this.inputDetails[2].optionList = [];
+      this.barangayConfig.isDisabled = true;
+      this.barangayConfig.optionList = [];
       this.selectedBarangay = null;
-      this.inputDetails[1].isDisabled = false;
+      this.municipalityConfig.isDisabled = false;
       if (value) {
-        this.getLocationOptions(this.selectedProvince, value, 2);
-        this.inputDetails[2].isDisabled = false;
+        this.getLocationOptions(
+          this.selectedProvince,
+          value,
+          this.barangayConfig
+        );
+        this.barangayConfig.isDisabled = false;
         this.isAddressVisible = true;
       }
     },
@@ -123,15 +131,19 @@ export default {
       return `https://www.google.com/maps/embed/v1/place?key=${APIKey}&q=${this.searchText}`;
     },
   },
+  created: function () {
+    this.getLocationOptions();
+  },
   methods: {
     getLocationOptions: async function (
       province = "",
       municipality = "",
-      inputDetailIndex = 0
+      config = this.provinceConfig
     ) {
       this.isLoading = true;
       this.message = "";
       this.hasError = false;
+
       try {
         const placeDetailsURL = new URL(
           "http://localhost:5000/api/getLocations"
@@ -143,7 +155,7 @@ export default {
           });
         }
         const getLocations = await axios(placeDetailsURL.toString());
-        if (this.inputDetails[inputDetailIndex]) {
+        if (config) {
           if (
             getLocations &&
             getLocations.data &&
@@ -151,11 +163,10 @@ export default {
             getLocations.data.data.response &&
             getLocations.data.data.response.statusCode != 404
           ) {
-            this.inputDetails[inputDetailIndex].optionList =
-              getLocations.data.data.response;
+            config.optionList = getLocations.data.data.response;
           } else {
-            this.inputDetails[inputDetailIndex].optionList = [];
-            this.inputDetails[inputDetailIndex].isDisabled = true;
+            config.optionList = [];
+            config.isDisabled = true;
             this.message = getLocations.data.data.response.message;
             this.hasError = true;
           }
@@ -163,25 +174,13 @@ export default {
         this.isLoading = false;
       } catch (error) {
         this.isLoading = false;
-        if (this.inputDetails[inputDetailIndex]) {
-          this.inputDetails[inputDetailIndex].optionList = [];
+        if (config) {
+          config.optionList = [];
         }
         console.log(error);
         this.message = error.message;
         this.isLoading = false;
         this.hasError = true;
-      }
-    },
-    handleOptionChange: function (inputDetailIndex, selectedOption) {
-      if (inputDetailIndex === 0) {
-        this.selectedProvince = selectedOption;
-      }
-      if (inputDetailIndex === 1) {
-        this.selectedMunicipality = selectedOption;
-      }
-
-      if (inputDetailIndex === 2) {
-        this.selectedBarangay = selectedOption;
       }
     },
     getDatalistOptions: async function () {
