@@ -11,7 +11,8 @@
             list="address_list"
             id="address"
             class="input"
-            @input="$emit('searchTextChanged', $event.target.value)"
+            :value="value"
+            @input="$emit('input', $event.target.value)"
           />
           <datalist id="address_list">
             <option v-for="(option, index) in datalistOptions" :key="index">
@@ -28,6 +29,7 @@ export default {
   name: "AddressInput",
   props: {
     datalistOptions: Array,
+    value: String,
   },
 };
 </script>

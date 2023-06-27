@@ -17,7 +17,7 @@
     <AddressInput
       v-show="isAddressVisible"
       :datalist-options="datalistOptions"
-      @searchTextChanged="handleSearchTextChange"
+      v-model="searchText"
     />
     <iframe
       v-show="isVisible"
@@ -102,6 +102,9 @@ export default {
         this.inputDetails[2].isDisabled = false;
         this.isAddressVisible = true;
       }
+    },
+    searchText: function (value) {
+      this.getDatalistOptions(value);
     },
   },
   computed: {
@@ -218,10 +221,6 @@ export default {
         console.log(error);
         this.isLoading = false;
       }
-    },
-    handleSearchTextChange: function (searchText) {
-      this.searchText = searchText;
-      this.getDatalistOptions(searchText);
     },
   },
 };
