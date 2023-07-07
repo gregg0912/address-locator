@@ -124,10 +124,10 @@ export default {
         : false;
     },
     iFrameSrc: function () {
-      const APIKey = "AIzaSyDBZIXSclXCvGim_n17QvvjVhyxlutoqKA";
       if (!this.searchText) {
         return "";
       }
+      const APIKey = "AIzaSyDBZIXSclXCvGim_n17QvvjVhyxlutoqKA";
       return `https://www.google.com/maps/embed/v1/place?key=${APIKey}&q=${this.searchText}`;
     },
   },
