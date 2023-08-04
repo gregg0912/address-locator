@@ -5,7 +5,7 @@ Vue.use(VueRouter);
 
 const routes = [
   {
-    path: "/:province*/:municipality*",
+    path: "/:province?/:municipality?",
     name: "home",
     component: () => import("../views/HomeView.vue"),
   },

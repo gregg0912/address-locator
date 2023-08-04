@@ -143,6 +143,10 @@ export default {
     },
   },
   created: function () {
+    console.log(this.$route.params);
+    if (this.$route.params.province) {
+      this.selectedProvince = this.$route.params.province;
+    }
     this.getLocationOptions({
       province: "",
       municipality: "",
@@ -182,8 +186,6 @@ export default {
       municipality,
       configName,
     }) {
-      console.log(`retrieved ${configName} from getValuesFromLocal`);
-
       let config = {};
 
       if (configName && configName === "province") {
@@ -219,7 +221,6 @@ export default {
       this.isLoading = false;
     },
     getValuesFromAPI: async function ({ province, municipality, configName }) {
-      console.log(`retrieved ${configName} from getValuesFromAPI`);
       let config = {};
       try {
         const placeDetailsURL = new URL(
@@ -271,7 +272,6 @@ export default {
         });
         this.isLoading = false;
       } catch (error) {
-        console.log(error);
         this.isLoading = false;
         this.message =
           error &&
@@ -319,7 +319,6 @@ export default {
         }
         this.isLoading = false;
       } catch (error) {
-        console.log(error);
         this.isLoading = false;
       }
     },

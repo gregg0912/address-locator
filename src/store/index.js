@@ -79,7 +79,6 @@ const mutations = {
       newResults,
       _.isEqual
     );
-    console.log(state.previousMunicipalities);
   },
 
   SET_PREVIOUS_BARANGAYS(state, newResults) {
@@ -88,13 +87,11 @@ const mutations = {
       newResults,
       _.isEqual
     );
-    console.log(state.previousMunicipalities);
   },
 };
 
 const actions = {
   setConfig: function ({ commit }, payload) {
-    // console.log(payload);
     if (payload.configName && payload.config) {
       switch (payload.configName) {
         case "province":
