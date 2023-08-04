@@ -76,7 +76,12 @@ export default {
     selectedProvince: function (value) {
       this.selectedMunicipality = null;
       this.selectedBarangay = null;
-      this.$router.push({ name: "home", params: { province: value } });
+      this.$router.push({
+        name: "home",
+        params: {
+          province: value,
+        },
+      });
     },
     selectedMunicipality: function (value) {
       this.selectedBarangay = null;
@@ -144,7 +149,7 @@ export default {
   },
   created: function () {
     console.log(this.$route.params);
-    if (this.$route.params.province) {
+    if (this.$route.params && this.$route.params.province) {
       this.selectedProvince = this.$route.params.province;
     }
     this.getLocationOptions({
