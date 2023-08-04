@@ -191,6 +191,7 @@ export default {
       municipality,
       configName,
     }) {
+      console.log(`retrieved ${configName} from getValuesFromLocal`);
       let config = {};
 
       if (configName && configName === "province") {
@@ -226,7 +227,9 @@ export default {
       this.isLoading = false;
     },
     getValuesFromAPI: async function ({ province, municipality, configName }) {
+      console.log(`retrieved ${configName} from getValuesFromAPI`);
       let config = {};
+
       try {
         const placeDetailsURL = new URL(
           "http://localhost:5050/api/getLocations"

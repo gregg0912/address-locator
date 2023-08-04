@@ -1,10 +1,10 @@
 <template>
   <div class="tabs is-centered">
     <ul>
-      <li>
+      <li :class="{ 'is-active': homeIsActive }">
         <router-link :to="{ name: 'home' }">Home</router-link>
       </li>
-      <li>
+      <li :class="{ 'is-active': instructionsIsActive }">
         <router-link :to="{ name: 'instructions' }">Instructions</router-link>
       </li>
     </ul>
@@ -13,19 +13,28 @@
 <script>
 export default {
   name: "RouterTabs",
+  data: function () {
+    return {
+      homeIsActive: false,
+      instructionsIsActive: false,
+    };
+  },
   watch: {
-    $route(toParams) {
-      if (document.querySelectorAll(".tabs li")) {
-        document.querySelectorAll(".tabs li").forEach((tab) => {
-          tab.classList.remove("is-active");
-        });
-      }
-      const toPath = toParams.path;
-      const toLink = document.querySelector(`a[href='${toPath}']`);
-      if (toPath && toLink && toLink.closest("li")) {
-        toLink.closest("li").classList.add("is-active");
-      }
+    $route: function (toParams) {
+      this.homeIsActive = toParams.name && toParams.name === "home";
+      this.instructionsIsActive =
+        toParams.name && toParams.name === "instructions";
     },
+  },
+  created: function () {
+    this.homeIsActive =
+      this.$route.params &&
+      this.$route.params.name &&
+      this.$route.params.name === "home";
+    this.instructionsIsActive =
+      this.$route.params &&
+      this.$route.params.name &&
+      this.$route.params.name === "instructions";
   },
 };
 </script>
