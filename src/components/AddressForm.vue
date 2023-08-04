@@ -8,14 +8,17 @@
     <loading :active="isLoading" :is-full-page="fullPage" />
     <div class="columns">
       <DropdownInput
+        v-if="provinceConfig.optionList.length"
         :input-detail="provinceConfig"
         v-model="selectedProvince"
       />
       <DropdownInput
+        v-if="provinceConfig.optionList.length"
         :input-detail="municipalityConfig"
         v-model="selectedMunicipality"
       />
       <DropdownInput
+        v-if="provinceConfig.optionList.length"
         :input-detail="barangayConfig"
         v-model="selectedBarangay"
       />
@@ -41,6 +44,7 @@
 <script>
 import "vue-loading-overlay/dist/vue-loading.css";
 import axios from "axios";
+import { mapGetters } from "vuex";
 
 import AddressInput from "./AddressInput.vue";
 import DropdownInput from "./DropdownInput.vue";
@@ -57,21 +61,6 @@ export default {
   },
   data: function () {
     return {
-      provinceConfig: {
-        name: "province",
-        isDisabled: false,
-        optionList: [],
-      },
-      municipalityConfig: {
-        name: "municipality",
-        isDisabled: true,
-        optionList: [],
-      },
-      barangayConfig: {
-        name: "barangay",
-        isDisabled: true,
-        optionList: [],
-      },
       selectedProvince: null,
       selectedMunicipality: null,
       selectedBarangay: null,
@@ -79,43 +68,65 @@ export default {
       isLoading: false,
       fullPage: true,
       isAddressVisible: false,
-      datalistOptions: [],
       message: "",
       hasError: false,
     };
   },
   watch: {
     selectedProvince: function (value) {
-      this.municipalityConfig.isDisabled = true;
-      this.municipalityConfig.optionList = [];
-      this.barangayConfig.isDisabled = true;
-      this.barangayConfig.optionList = [];
       this.selectedMunicipality = null;
       this.selectedBarangay = null;
-      this.getLocationOptions(value, "", this.municipalityConfig);
-      this.municipalityConfig.isDisabled = false;
-      this.isAddressVisible = false;
+      this.$router.push({ name: "home", params: { province: value } });
     },
     selectedMunicipality: function (value) {
-      this.barangayConfig.isDisabled = true;
-      this.barangayConfig.optionList = [];
       this.selectedBarangay = null;
-      this.municipalityConfig.isDisabled = false;
       if (value) {
-        this.getLocationOptions(
-          this.selectedProvince,
-          value,
-          this.barangayConfig
-        );
-        this.barangayConfig.isDisabled = false;
-        this.isAddressVisible = true;
+        this.$router.push({
+          name: "home",
+          params: { province: this.selectedProvince, municipality: value },
+        });
       }
     },
     searchText: function (value) {
       this.getDatalistOptions(value);
     },
+    $route: function (route) {
+      this.$store.dispatch("resetConfig", { configName: "barangay" });
+      if (route.params && route.params.province && !this.selectedMunicipality) {
+        this.$store.dispatch("resetConfig", { configName: "municipality" });
+        this.getLocationOptions({
+          province: route.params.province,
+          municipality: route.params.municipality || "",
+          configName: "municipality",
+        });
+        this.isAddressVisible = false;
+      }
+
+      if (route.params && route.params.municipality) {
+        this.$store.dispatch("resetConfig", { configName: "barangay" });
+        this.getLocationOptions({
+          province: route.params.province,
+          municipality: route.params.municipality,
+          configName: "barangay",
+        });
+        this.$store.dispatch("setConfig", {
+          configName: "municipality",
+          config: { isDisabled: false },
+        });
+        this.isAddressVisible = true;
+      }
+    },
   },
   computed: {
+    ...mapGetters([
+      "provinceConfig",
+      "municipalityConfig",
+      "barangayConfig",
+      "datalistOptions",
+      "previousProvinces",
+      "previousMunicipalities",
+      "previousBarangays",
+    ]),
     isVisible: function () {
       return this.selectedMunicipality &&
         this.selectedProvince &&
@@ -132,61 +143,152 @@ export default {
     },
   },
   created: function () {
-    this.getLocationOptions();
+    this.getLocationOptions({
+      province: "",
+      municipality: "",
+      configName: "province",
+    });
   },
   methods: {
-    getLocationOptions: async function (
-      province = "",
-      municipality = "",
-      config = this.provinceConfig
-    ) {
+    getLocationOptions: async function ({
+      province,
+      municipality,
+      configName,
+    }) {
       this.isLoading = true;
       this.message = "";
       this.hasError = false;
 
+      if (
+        (configName === "province" && this.previousProvinces.length) ||
+        (configName === "municipality" &&
+          this.previousMunicipalities.find(
+            (municipality) => municipality.provinceName === province
+          )) ||
+        (configName === "barangay" &&
+          this.previousBarangays.find(
+            (barangay) =>
+              barangay.provinceName === province &&
+              barangay.municipalityName === municipality
+          ))
+      ) {
+        this.getValuesFromLocal({ province, municipality, configName });
+      } else {
+        this.getValuesFromAPI({ province, municipality, configName });
+      }
+    },
+    getValuesFromLocal: async function ({
+      province,
+      municipality,
+      configName,
+    }) {
+      console.log(`retrieved ${configName} from getValuesFromLocal`);
+
+      let config = {};
+
+      if (configName && configName === "province") {
+        config.optionList = this.previousProvinces;
+        config.isDisabled = false;
+      } else if (
+        province &&
+        province.trim().length &&
+        configName &&
+        configName === "municipality"
+      ) {
+        config.optionList = this.previousMunicipalities.filter(
+          (municipality) => municipality.provinceName === province
+        );
+        config.isDisabled = false;
+      } else if (
+        province &&
+        province.trim().length &&
+        municipality &&
+        municipality.trim().length &&
+        configName &&
+        configName === "barangay"
+      ) {
+        config.optionList = this.previousBarangays.filter(
+          (barangay) =>
+            barangay.provinceName === province &&
+            barangay.municipalityName === municipality
+        );
+        config.isDisabled = false;
+      }
+
+      await this.$store.dispatch("setConfig", { config, configName });
+      this.isLoading = false;
+    },
+    getValuesFromAPI: async function ({ province, municipality, configName }) {
+      console.log(`retrieved ${configName} from getValuesFromAPI`);
+      let config = {};
       try {
         const placeDetailsURL = new URL(
-          "http://localhost:5000/api/getLocations"
+          "http://localhost:5050/api/getLocations"
         );
         if (province.length || municipality.length) {
           placeDetailsURL.search = new URLSearchParams({
-            province: province,
-            municipality: municipality,
+            province,
+            municipality,
           });
         }
-        const getLocations = await axios(placeDetailsURL.toString());
-        if (config) {
-          if (
-            getLocations &&
-            getLocations.data &&
-            getLocations.data.data &&
-            getLocations.data.data.response &&
-            getLocations.data.data.response.statusCode != 404
-          ) {
-            config.optionList = getLocations.data.data.response;
-          } else {
-            config.optionList = [];
-            config.isDisabled = true;
-            this.message = getLocations.data.data.response.message;
-            this.hasError = true;
-          }
+        const locations = await axios(placeDetailsURL.toString());
+        if (
+          locations &&
+          locations.data &&
+          locations.data.data &&
+          locations.data.data.response &&
+          locations.data.data.response.statusCode != 404
+        ) {
+          config.optionList = locations.data.data.response;
+          config.isDisabled = false;
+        } else {
+          config.optionList = [];
+          config.isDisabled = true;
+          this.message =
+            locations.data &&
+            locations.data.data &&
+            locations.data.data.response &&
+            locations.data.data.response.message;
+          this.hasError = true;
         }
+        this.$store.dispatch("setConfig", { config, configName });
+        this.$store.dispatch("setPreviousResults", {
+          configName,
+          newResults: config.optionList.map((option) => {
+            return {
+              name: option.name,
+              ...(province &&
+                (configName === "barangay" ||
+                  configName === "municipality") && {
+                  provinceName: province,
+                }),
+              ...(province &&
+                configName === "barangay" && {
+                  municipalityName: municipality,
+                }),
+            };
+          }),
+        });
         this.isLoading = false;
       } catch (error) {
-        this.isLoading = false;
-        if (config) {
-          config.optionList = [];
-        }
         console.log(error);
-        this.message = error.message;
+        this.isLoading = false;
+        this.message =
+          error &&
+          error.response &&
+          error.response.data &&
+          error.response.data.error;
         this.isLoading = false;
         this.hasError = true;
+        const config = {
+          optionList: [],
+        };
+        this.$store.dispatch("setConfig", { config, configName });
       }
     },
     getDatalistOptions: async function () {
       this.isLoading = true;
       const autocompleteURL = new URL("http://localhost:3000/autocomplete");
-
       if (
         this.searchText &&
         this.selectedProvince &&
@@ -203,7 +305,6 @@ export default {
           searchText: this.searchText,
         });
       }
-
       try {
         const getDatalistOptions = await axios(autocompleteURL.toString());
         if (
@@ -211,9 +312,10 @@ export default {
           getDatalistOptions.data &&
           !getDatalistOptions.data.message
         ) {
-          this.datalistOptions = getDatalistOptions.data.map(
+          const datalistOptions = getDatalistOptions.data.map(
             (datalistOption) => datalistOption.address
           );
+          this.$store.dispatch("setDataListOptions", { datalistOptions });
         }
         this.isLoading = false;
       } catch (error) {

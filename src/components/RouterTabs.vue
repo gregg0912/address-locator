@@ -15,7 +15,6 @@ export default {
   name: "RouterTabs",
   watch: {
     $route(toParams) {
-      console.log(toParams);
       if (document.querySelectorAll(".tabs li")) {
         document.querySelectorAll(".tabs li").forEach((tab) => {
           tab.classList.remove("is-active");

@@ -43,22 +43,5 @@ export default {
       );
     },
   },
-  // data: function () {
-  //   return {
-  //     selectedOption: null,
-  //   };
-  // },
-  // methods: {
-  //   handleOptionSelect: function () {
-  //     let inputDetailIndex = 0;
-  //     if (this.inputDetail.name === "municipality") {
-  //       inputDetailIndex = 1;
-  //     }
-  //     if (this.inputDetail.name === "barangay") {
-  //       inputDetailIndex = 2;
-  //     }
-  //     this.$emit("optionChange", inputDetailIndex, this.selectedOption);
-  //   },
-  // },
 };
 </script>
